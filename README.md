@@ -1,3 +1,10 @@
+<p align="center">
+  <img src="https://img.shields.io/badge/TypeScript-5.x-blue" />
+  <img src="https://img.shields.io/badge/Node.js-18+-green" />
+  <img src="https://img.shields.io/badge/status-active-success" />
+  <img src="https://img.shields.io/badge/license-MIT-orange" />
+</p>
+
 # 🧬 AI-Driven Simulation Game
 
 An **agent-based artificial life simulation** where autonomous agents move, consume resources, and survive based on simple decision rules — producing **emergent behavior** without scripted outcomes.
