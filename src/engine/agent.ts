@@ -1,3 +1,9 @@
+export interface Traits {
+  speed: number;
+  vision: number;
+  metabolism: number;
+}
+
 export class Agent {
   id: number;
   x: number;
@@ -5,13 +11,23 @@ export class Agent {
 
   energy = 100;
   age = 0;
+  generation: number;
 
-  speed = 1;
-  vision = 6;
+  traits: Traits;
 
-  constructor(id: number, x: number, y: number) {
+  reproductionCooldown = 0;
+
+  constructor(
+    id: number,
+    x: number,
+    y: number,
+    traits: Traits,
+    generation = 0
+  ) {
     this.id = id;
     this.x = x;
     this.y = y;
+    this.traits = traits;
+    this.generation = generation;
   }
 }

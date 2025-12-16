@@ -17,8 +17,9 @@ export function move(agent: Agent, decision: Decision, rng: RNG) {
     dy = vy / len;
   }
 
-  agent.x += dx * agent.speed;
-  agent.y += dy * agent.speed;
+  agent.x += dx * agent.traits.speed;
+  agent.y += dy * agent.traits.speed;
 
-  agent.energy -= 0.1 * agent.speed;
+  // movement cost scales with metabolism
+  agent.energy -= agent.traits.metabolism * 0.1;
 }
