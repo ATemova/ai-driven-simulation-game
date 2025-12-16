@@ -5,10 +5,25 @@ import { Food } from "./engine/food";
 import { CONFIG } from "./engine/config";
 import { tick } from "./engine/simulation";
 
+import { Renderer } from "./ui/renderer";
+import { SimClock } from "./ui/simClock";
+import { setupControls } from "./ui/controls";
+import { Metrics } from "./ui/metrics";
+
+// Canvas setup
+const canvas = document.getElementById("sim") as HTMLCanvasElement;
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// World & RNG
 const world = new World(CONFIG.worldSize, CONFIG.worldSize);
 const rng = new RNG(123);
 
-// Initial agents with random traits
+// Metrics
+const metrics = new Metrics();
+let sampleCounter = 0;
+
+// Initial agents
 for (let i = 0; i < CONFIG.initialAgents; i++) {
   world.addAgent(
     new Agent(
@@ -24,7 +39,7 @@ for (let i = 0; i < CONFIG.initialAgents; i++) {
   );
 }
 
-// Food
+// Initial food
 for (let i = 0; i < CONFIG.initialFood; i++) {
   world.addFood(
     new Food(
@@ -34,25 +49,39 @@ for (let i = 0; i < CONFIG.initialFood; i++) {
   );
 }
 
-let tickCount = 0;
+// Renderer
+const renderer = new Renderer(canvas, world);
 
-setInterval(() => {
-  tick(world, rng);
-  tickCount++;
+// Simulation clock + controls
+const clock = new SimClock();
+setupControls(clock);
 
-  if (tickCount % 100 === 0) {
-    const avgSpeed =
-      world.agents.reduce((s, a) => s + a.traits.speed, 0) /
-      Math.max(1, world.agents.length);
+// Main loop timing
+let lastTime = performance.now();
 
-    const avgVision =
-      world.agents.reduce((s, a) => s + a.traits.vision, 0) /
-      Math.max(1, world.agents.length);
+function loop(now: number) {
+  const deltaTime = (now - lastTime) / 1000;
+  lastTime = now;
 
-    console.log(
-      `Tick ${tickCount} | Pop ${world.agents.length} | AvgSpeed ${avgSpeed.toFixed(
-        2
-      )} | AvgVision ${avgVision.toFixed(2)}`
-    );
-  }
-}, 50);
+  clock.update(deltaTime, () => {
+    tick(world, rng);
+
+    sampleCounter++;
+    if (sampleCounter % 10 === 0) {
+      metrics.sample(world);
+    }
+  });
+
+  // Get latest metrics safely
+  const lastIndex = metrics.population.length - 1;
+  const avgSpeed =
+    lastIndex >= 0 ? metrics.avgSpeed[lastIndex] : undefined;
+  const avgVision =
+    lastIndex >= 0 ? metrics.avgVision[lastIndex] : undefined;
+
+  renderer.render(clock.speed, clock.paused, avgSpeed, avgVision);
+
+  requestAnimationFrame(loop);
+}
+
+requestAnimationFrame(loop);

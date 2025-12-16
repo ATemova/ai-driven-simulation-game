@@ -9,9 +9,7 @@
 
 An **agent-based artificial life simulation** where autonomous agents move, consume resources, reproduce, and evolve based on simple decision rules — producing **emergent behavior** without any scripted outcomes.
 
-This project focuses on **systems design, determinism, and simulation architecture**, rather than graphics or traditional gameplay.
-
----
+The project emphasizes **systems design, determinism, simulation architecture, and data-driven visualization**, rather than traditional gameplay mechanics.
 
 ## ✨ Key Concepts
 
@@ -21,29 +19,27 @@ This project focuses on **systems design, determinism, and simulation architectu
 - **Emergent population dynamics** (no hardcoded behaviors)
 - **Deterministic simulation** using a seeded RNG
 - **Modular engine architecture** (systems-based design)
+- **Real-time visualization and metrics**
 
 > No agents are directly controlled by the player.  
-> All behavior emerges from rules + environment + resource pressure.
-
----
+> All behavior emerges from rules, environment, and resource pressure.
 
 ## 🧠 How It Works (High Level)
 
 Each simulation tick:
 
 1. Agents **perceive** nearby food
-2. A **decision system** chooses an action (seek or wander)
+2. A **decision system** selects an action (seek or wander)
 3. A **movement system** updates position and energy
 4. Agents **consume food**, reproduce, age, or die
 5. Food **respawns** to maintain ecosystem pressure
+6. Metrics are sampled for analysis and visualization
 
 Over time, the system naturally produces:
 - population booms and collapses
 - trait optimization
 - extinction events
 - stable or unstable equilibria
-
----
 
 ## 🧬 Evolution & Genetics (Week 2)
 
@@ -53,22 +49,41 @@ Agents carry inheritable traits:
 - **Vision** – affects food detection radius
 - **Metabolism** – affects energy consumption
 
-When reproducing:
+During reproduction:
 - Offspring inherit parental traits
 - Small random mutations are applied
-- Successful traits spread through the population
+- Traits that improve survival become more common
 
-This creates **natural selection** without explicit fitness functions.
+This results in **natural selection** without explicit fitness or scoring functions.
 
----
+## 🎨 Visualization & Metrics (Week 3)
+
+The simulation includes a **real-time Canvas-based renderer**:
+
+- Agents rendered as moving entities
+- Food rendered as resource nodes
+- Energy visualized via color brightness
+- Live HUD overlay:
+  - population size
+  - simulation speed
+  - paused/running state
+  - average trait values
+
+A metrics system collects time-series data:
+- population size
+- average speed
+- average vision
+- average metabolism
+
+This enables **data-driven inspection of emergent behavior**.
 
 ## ⚙️ Tech Stack
 
 - **TypeScript**
 - **Node.js**
-- **ts-node**
+- **Vite** (dev server)
+- **HTML Canvas**
 - No external game engines
-- Headless simulation (visualization planned for later)
 
 ## ▶️ Running the Simulation
 
@@ -84,21 +99,17 @@ npm run dev
 The simulation uses a seeded random number generator:
 - Same seed → same evolution
 - Enables debugging, replayability, and analysis
-- Important for simulation correctness
+- Essential for correctness in simulations
 
 ## 📈 Current Status
-- Week 1 — Complete
-- Core simulation engine
-- Energy-based survival
-- Food spawning & consumption
-- Deterministic behavior
-- Stable ecosystem equilibrium
+✅ Week 1 — Core simulation engine
+✅ Week 2 — Evolution, reproduction, and mutation
+✅ Week 3 — Real-time visualization, controls, and metrics
+⏳ Week 4 — Environment controls, graphs, and final polish
 
 ## 🚀 Planned Extensions
-- Reproduction & mutation
-- Trait inheritance (evolution)
 - Live population & trait graphs
-- Canvas-based visualization
 - Environmental manipulation (climate, scarcity)
 - Multiple species and predator–prey dynamics
 - Save / load and replay support
+- Performance optimizations for large populations
