@@ -102,10 +102,10 @@ The simulation uses a seeded random number generator:
 - Essential for correctness in simulations
 
 ## 📈 Current Status
-✅ Week 1 — Core simulation engine
-✅ Week 2 — Evolution, reproduction, and mutation
-✅ Week 3 — Real-time visualization, controls, and metrics
-⏳ Week 4 — Environment controls, graphs, and final polish
+- ✅ Week 1 — Core simulation engine
+- ✅ Week 2 — Evolution, reproduction, and mutation
+- ✅ Week 3 — Real-time visualization, controls, and metrics
+- ⏳ Week 4 — Environment controls, graphs, and final polish
 
 ## 🚀 Planned Extensions
 - Live population & trait graphs
