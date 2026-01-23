@@ -3,132 +3,78 @@
   <img src="https://img.shields.io/badge/Node.js-18+-green" />
   <img src="https://img.shields.io/badge/simulation-deterministic-purple" />
   <img src="https://img.shields.io/badge/model-agent--based-informational" />
-  <img src="https://img.shields.io/badge/status-active-success" />
+  <img src="https://img.shields.io/badge/status-complete-success" />
   <img src="https://img.shields.io/badge/license-MIT-orange" />
 </p>
 
 # 🧬 AI-Driven Simulation Game
 
-An **agent-based artificial life simulation** in which autonomous agents move, consume resources, reproduce, and evolve under environmental pressure, producing **emergent behavior** without scripted logic or fitness functions.
+A **deterministic, agent-based artificial life simulation** where autonomous agents move, consume resources, reproduce, and evolve under environmental pressure—producing **emergent behavior** without scripted logic or fitness functions.
 
-The project emphasizes **systems design, determinism, simulation architecture, and data-driven visualization**, rather than traditional gameplay mechanics.
+The project focuses on **systems design, simulation architecture, and data-driven visualization**, not traditional gameplay.
 
-## ✨ Key Concepts
+## ✨ Key Features
 
-- **Autonomous agents** with energy, age, and genetic traits
-- **Resource-based survival** (food consumption & metabolism)
-- **Reproduction and mutation**
-- **Emergent population dynamics** (no hardcoded behaviors)
-- **Deterministic simulation** using a seeded RNG
-- **Modular engine architecture** (systems-based design)
-- **Real-time visualization and metrics**
+- Autonomous agents with energy, age, and inheritable traits  
+- Resource-based survival (food, metabolism)  
+- Reproduction with mutation and natural selection  
+- Deterministic simulation using a seeded RNG  
+- Modular engine and systems-based architecture  
+- Real-time Canvas visualization with live metrics  
 
-> No agents are directly controlled by the player.  
-> All behavior emerges from rules, environment, and resource pressure.
+> No agents are player-controlled.  
+> All behavior emerges from rules + environment.
 
-## 🧠 How It Works (High Level)
+## 🧠 Simulation Loop
 
-Each simulation tick:
+Each tick:
+1. Agents perceive nearby food  
+2. A decision system selects an action  
+3. Movement and energy updates occur  
+4. Agents eat, reproduce, age, or die  
+5. Food respawns to maintain ecosystem pressure  
+6. Metrics are sampled for visualization  
 
-1. Agents **perceive** nearby food
-2. A **decision system** selects an action (seek or wander)
-3. A **movement system** updates position and energy
-4. Agents **consume food**, reproduce, age, or die
-5. Food **respawns** to maintain ecosystem pressure
-6. Metrics are sampled for analysis and visualization
+This naturally produces population cycles, trait optimization, and extinction events.
 
-Over time, the system naturally produces:
-- population booms and collapses
-- trait optimization
-- extinction events
-- stable or unstable equilibria
+## 🎨 Visualization & Metrics
 
-## 🧬 Evolution & Genetics (Week 2)
-
-Agents carry inheritable traits:
-
-- **Speed** – affects movement efficiency
-- **Vision** – affects food detection radius
-- **Metabolism** – affects energy consumption
-
-During reproduction:
-- Offspring inherit parental traits
-- Small random mutations are applied
-- Traits that improve survival become more common
-
-This results in **natural selection** without explicit fitness or scoring functions.
-
-## 🎨 Visualization & Metrics (Week 3)
-
-The simulation includes a **real-time Canvas-based renderer**:
-
-- Agents rendered as moving entities
-- Food rendered as resource nodes
-- Energy visualized via color brightness
-- Live HUD overlay:
-  - population size
-  - simulation speed
-  - paused/running state
-  - average trait values
-
-A metrics system collects time-series data:
-- population size
-- average speed
-- average vision
-- average metabolism
-
-This enables **data-driven inspection of emergent behavior**.
+- Agents and food rendered in real time  
+- Energy visualized via color and size  
+- HUD showing population, speed, and traits  
+- Time-series graphs for population and traits  
 
 ## ⚙️ Tech Stack
 
-- **TypeScript**
-- **Node.js**
-- **Vite** (dev server)
-- **HTML Canvas**
+- TypeScript
+- Node.js
+- Vite
+- HTML Canvas  
 - No external game engines
 
-## ▶️ Running the Simulation
+## ▶️ Run Locally
 
-### Install dependencies
 ```bash
 npm install
 ```
-### Run (development)
 ```bash
 npm run dev
 ```
 ## 🎮 Controls
 
-- **Space** → pause / resume
-- **1 / 2 / 3** → speed
-- **f / F** → food scarcity / abundance
-- **m / M** → mutation strength
-- **g** → cycle trait graph
-- **r** → reset (same seed)
-- **n** → reset (new seed)
-
-Controls allow observation of emergent behavior at different time scales.
+- **Space** — pause / resume
+- **1 / 2 / 3** — simulation speed
+- **f / F** — food availability
+- **m / M** — mutation strength
+- **g** — cycle trait graph
+- **r / n** — reset (same / new seed)
 
 ## 🧩 Design Principles
 
-- **Separation of concerns** — engine, systems, and UI are strictly decoupled
-- **Determinism first** — all randomness is seeded and reproducible
-- **Emergence over scripting** — no hardcoded behaviors or outcomes
-- **Observability** — metrics and visualization are first-class features
+- Determinism first
+- Emergence over scripting
+- Strong separation of engine, systems, and UI
+- Observability via metrics and visualization
 
-## 🔬 Determinism
-The simulation uses a seeded random number generator:
-- Same seed → same evolution
-- Enables debugging, replayability, and analysis
-- Essential for correctness in simulations
-
-## 🚀 Planned Extensions
-
-- Environmental controls (climate, scarcity, shocks)
-- Multiple species and predator–prey dynamics
-- Save / load and replay support
-- Performance optimizations for large populations
-- Experimental AI decision models (e.g. utility scoring, simple networks)
-
-## 🖥️ Demo
-> A short demo GIF/video will be added after Week 4 polish.
+## 🏁 Status
+Feature-complete, portfolio-ready artificial life simulation.
