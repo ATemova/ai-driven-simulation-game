@@ -3,13 +3,14 @@ import { Agent } from "../engine/agent";
 import { Food } from "../engine/food";
 import { Graphs } from "./graphs";
 import { CONFIG } from "../engine/config";
+import { graphMode } from "./environmentControls";
 
 export class Renderer {
   private ctx: CanvasRenderingContext2D;
   private scale: number;
 
   private popGraph: Graphs;
-  private speedGraph: Graphs;
+  private traitGraph: Graphs;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -23,7 +24,6 @@ export class Renderer {
     this.ctx = ctx;
     this.scale = canvas.width / world.width;
 
-    // Initialize graphs AFTER ctx exists
     this.popGraph = new Graphs(
       this.ctx,
       this.canvas.width - 260,
@@ -32,7 +32,7 @@ export class Renderer {
       100
     );
 
-    this.speedGraph = new Graphs(
+    this.traitGraph = new Graphs(
       this.ctx,
       this.canvas.width - 260,
       140,
@@ -61,7 +61,7 @@ export class Renderer {
 
   drawAgent(agent: Agent) {
     const energyRatio = Math.min(agent.energy / 150, 1);
-    const brightness = Math.floor(100 + energyRatio * 155);
+    const brightness = Math.floor(120 + energyRatio * 135);
 
     this.ctx.fillStyle = `rgb(${brightness}, 80, 80)`;
     this.ctx.beginPath();
@@ -82,17 +82,14 @@ export class Renderer {
     avgSpeed?: number,
     avgVision?: number,
     populationHistory?: number[],
-    avgSpeedHistory?: number[]
+    avgSpeedHistory?: number[],
+    avgVisionHistory?: number[],
+    avgMetabolismHistory?: number[]
   ) {
     this.clear();
 
-    for (const food of this.world.food) {
-      this.drawFood(food);
-    }
-
-    for (const agent of this.world.agents) {
-      this.drawAgent(agent);
-    }
+    for (const food of this.world.food) this.drawFood(food);
+    for (const agent of this.world.agents) this.drawAgent(agent);
 
     this.drawOverlay(
       this.world.agents.length,
@@ -102,12 +99,35 @@ export class Renderer {
       avgVision
     );
 
-    if (populationHistory && avgSpeedHistory) {
+    // Population graph
+    if (populationHistory) {
       this.popGraph.frame("Population");
+      this.popGraph.drawGrid();
       this.popGraph.drawLine(populationHistory, "#38bdf8");
+    }
 
-      this.speedGraph.frame("Avg Speed");
-      this.speedGraph.drawLine(avgSpeedHistory, "#fbbf24");
+    // Trait graph (mode dependent)
+    let label = "";
+    let data: number[] | undefined;
+    let color = "#fbbf24";
+
+    if (graphMode === "speed") {
+      label = "Avg Speed";
+      data = avgSpeedHistory;
+    } else if (graphMode === "vision") {
+      label = "Avg Vision";
+      data = avgVisionHistory;
+      color = "#a78bfa";
+    } else {
+      label = "Avg Metabolism";
+      data = avgMetabolismHistory;
+      color = "#fb7185";
+    }
+
+    if (data) {
+      this.traitGraph.frame(label);
+      this.traitGraph.drawGrid();
+      this.traitGraph.drawLine(data, color);
     }
   }
 
@@ -139,10 +159,11 @@ export class Renderer {
       y += line;
     }
 
-    this.ctx.fillText(`Food: ${CONFIG.initialFood}`, 12, y);
-    y += line;
-
+    this.ctx.fillText(`Food: ${CONFIG.initialFood}`, 12, y); y += line;
     this.ctx.fillText(
-      `Mutation: ${CONFIG.mutationStrength.toFixed(2)}`, 12, y);
+      `Mutation: ${CONFIG.mutationStrength.toFixed(2)}`,
+      12,
+      y
+    );
   }
 }

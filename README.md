@@ -99,10 +99,13 @@ npm run dev
 ```
 ## 🎮 Controls
 
-- **Space** — Pause / resume simulation
-- **1** — Simulation speed ×1
-- **2** — Simulation speed ×5
-- **3** — Simulation speed ×20
+- **Space** → pause / resume
+- **1 / 2 / 3** → speed
+- **f / F** → food scarcity / abundance
+- **m / M** → mutation strength
+- **g** → cycle trait graph
+- **r** → reset (same seed)
+- **n** → reset (new seed)
 
 Controls allow observation of emergent behavior at different time scales.
 

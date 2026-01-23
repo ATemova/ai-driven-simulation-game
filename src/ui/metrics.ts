@@ -38,4 +38,12 @@ export class Metrics {
       this.avgMetabolism.shift();
     }
   }
+
+  reset() {
+  this.population = [];
+  this.avgSpeed = [];
+  this.avgVision = [];
+  this.avgMetabolism = [];
+  }
+
 }
