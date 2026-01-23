@@ -14,7 +14,9 @@ import {
   setupResetControls
 } from "./ui/environmentControls";
 
+// =======================
 // Canvas setup
+// =======================
 const canvas = document.getElementById("sim") as HTMLCanvasElement;
 
 function resize() {
@@ -24,16 +26,22 @@ function resize() {
 window.addEventListener("resize", resize);
 resize();
 
+// =======================
 // Metrics
+// =======================
 const metrics = new Metrics();
 let sampleCounter = 0;
 
+// =======================
 // Simulation state
+// =======================
 let seed = 123;
 let world: World;
 let rng: RNG;
 
-// World creation 
+// =======================
+// World creation
+// =======================
 function createWorld(): { world: World; rng: RNG } {
   const world = new World(CONFIG.worldSize, CONFIG.worldSize);
   const rng = new RNG(seed);
@@ -68,13 +76,19 @@ function createWorld(): { world: World; rng: RNG } {
   return { world, rng };
 }
 
+// =======================
 // Initial world
+// =======================
 ({ world, rng } = createWorld());
 
+// =======================
 // Renderer
+// =======================
 const renderer = new Renderer(canvas, world);
 
+// =======================
 // Controls
+// =======================
 const clock = new SimClock();
 setupControls(clock);
 setupEnvironmentControls();
@@ -91,7 +105,9 @@ setupResetControls(
   }
 );
 
+// =======================
 // Main loop
+// =======================
 let lastTime = performance.now();
 
 function loop(now: number) {
@@ -102,7 +118,10 @@ function loop(now: number) {
     tick(world, rng);
 
     sampleCounter++;
-    if (sampleCounter % 10 === 0) {
+    const sampleRate =
+      world.agents.length > 500 ? 30 : 10;
+
+    if (sampleCounter % sampleRate === 0) {
       metrics.sample(world);
     }
   });

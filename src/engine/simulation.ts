@@ -9,11 +9,14 @@ import { CONFIG } from "./config";
 
 let NEXT_ID = 1000;
 
-function mutate(value: number, rng: RNG) {
-  const factor = 1 + rng.range(-CONFIG.mutationStrength, CONFIG.mutationStrength);
+/** Mutate a trait value within bounds */
+function mutate(value: number, rng: RNG): number {
+  const factor =
+    1 + rng.range(-CONFIG.mutationStrength, CONFIG.mutationStrength);
   return Math.max(0.1, value * factor);
 }
 
+/** Create offspring agent */
 function reproduce(parent: Agent, rng: RNG): Agent {
   const t = parent.traits;
 
@@ -35,19 +38,23 @@ function reproduce(parent: Agent, rng: RNG): Agent {
   );
 }
 
+/** Advance simulation by one tick */
 export function tick(world: World, rng: RNG) {
   const newborns: Agent[] = [];
 
+  // Iterate backwards for safe removal
   for (let i = world.agents.length - 1; i >= 0; i--) {
     const agent = world.agents[i];
 
+    // Perception & decision
     const visibleFood = perceiveFood(agent, world.food);
     const decision = decide(agent, visibleFood);
 
+    // Movement
     move(agent, decision, rng);
     world.clampPosition(agent);
 
-    // Eat
+    // Eat food
     for (let j = world.food.length - 1; j >= 0; j--) {
       const food = world.food[j];
       if (Math.hypot(food.x - agent.x, food.y - agent.y) < 1) {
@@ -57,16 +64,18 @@ export function tick(world: World, rng: RNG) {
       }
     }
 
-    // Reproduction
+    // Reproduction (with population cap)
     if (
       agent.energy >= CONFIG.reproductionEnergy &&
-      agent.reproductionCooldown <= 0
+      agent.reproductionCooldown <= 0 &&
+      world.agents.length + newborns.length < CONFIG.maxAgents
     ) {
       newborns.push(reproduce(agent, rng));
     }
 
+    // Metabolism & aging
     agent.reproductionCooldown--;
-    agent.energy -= 0.05;
+    agent.energy -= agent.traits.metabolism * 0.05;
     agent.age++;
 
     // Death
@@ -75,13 +84,13 @@ export function tick(world: World, rng: RNG) {
     }
   }
 
-  // Add newborns
+  // Add newborns (after loop)
   for (const child of newborns) {
     world.addAgent(child);
   }
 
-  // Respawn food
-  if (world.food.length < CONFIG.initialFood) {
+  // Respawn food (with cap)
+  if (world.food.length < CONFIG.maxFood) {
     world.addFood(
       new Food(
         rng.range(0, world.width),

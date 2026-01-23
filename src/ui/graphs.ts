@@ -21,7 +21,8 @@ export class Graphs {
 
   drawGrid(lines = 4) {
     const ctx = this.ctx;
-    ctx.strokeStyle = "#1e293b";
+
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.15)";
     ctx.lineWidth = 1;
 
     for (let i = 1; i < lines; i++) {
@@ -39,8 +40,10 @@ export class Graphs {
     const ctx = this.ctx;
     const max = maxValue ?? Math.max(...data, 1);
 
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = color;      
+    ctx.lineWidth = 2.5;
+    ctx.globalAlpha = 1;          
+
     ctx.beginPath();
 
     data.forEach((value, i) => {
@@ -53,5 +56,6 @@ export class Graphs {
     });
 
     ctx.stroke();
+    ctx.globalAlpha = 1;          // reset (safe for other drawing)
   }
 }

@@ -42,37 +42,51 @@ export class Renderer {
   }
 
   clear() {
-    this.ctx.fillStyle = "#0f172a";
+    // Slight fade for motion trails
+    this.ctx.fillStyle = "rgba(15, 23, 42, 0.35)";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
   drawFood(food: Food) {
-    this.ctx.fillStyle = "#22c55e";
+    const x = food.x * this.scale;
+    const y = food.y * this.scale;
+
+    // Glow
     this.ctx.beginPath();
-    this.ctx.arc(
-      food.x * this.scale,
-      food.y * this.scale,
-      2,
-      0,
-      Math.PI * 2
-    );
+    this.ctx.arc(x, y, 4, 0, Math.PI * 2);
+    this.ctx.fillStyle = "rgba(34, 197, 94, 0.25)";
+    this.ctx.fill();
+
+    // Core
+    this.ctx.beginPath();
+    this.ctx.arc(x, y, 2.2, 0, Math.PI * 2);
+    this.ctx.fillStyle = "#22c55e";
     this.ctx.fill();
   }
 
   drawAgent(agent: Agent) {
     const energyRatio = Math.min(agent.energy / 150, 1);
-    const brightness = Math.floor(120 + energyRatio * 135);
+    const radius = 3 + energyRatio * 2;
 
-    this.ctx.fillStyle = `rgb(${brightness}, 80, 80)`;
+    const r = Math.floor(180 + energyRatio * 60);
+    const g = Math.floor(60 + energyRatio * 40);
+    const b = 60;
+
     this.ctx.beginPath();
     this.ctx.arc(
       agent.x * this.scale,
       agent.y * this.scale,
-      4,
+      radius,
       0,
       Math.PI * 2
     );
+
+    this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
     this.ctx.fill();
+
+    this.ctx.strokeStyle = "rgba(0,0,0,0.3)";
+    this.ctx.lineWidth = 0.5;
+    this.ctx.stroke();
   }
 
   /** Main render entry point */
@@ -86,6 +100,18 @@ export class Renderer {
     avgVisionHistory?: number[],
     avgMetabolismHistory?: number[]
   ) {
+    if (paused) {
+      this.clear();
+      this.drawOverlay(
+        this.world.agents.length,
+        speed,
+        paused,
+        avgSpeed,
+        avgVision
+      );
+      return;
+    }
+
     this.clear();
 
     for (const food of this.world.food) this.drawFood(food);
@@ -99,14 +125,14 @@ export class Renderer {
       avgVision
     );
 
-    // Population graph
+    // 📈 Population graph
     if (populationHistory) {
       this.popGraph.frame("Population");
       this.popGraph.drawGrid();
       this.popGraph.drawLine(populationHistory, "#38bdf8");
     }
 
-    // Trait graph (mode dependent)
+    // 🧬 Trait graph
     let label = "";
     let data: number[] | undefined;
     let color = "#fbbf24";
@@ -139,10 +165,14 @@ export class Renderer {
     avgSpeed?: number,
     avgVision?: number
   ) {
+    // HUD background
+    this.ctx.fillStyle = "rgba(15, 23, 42, 0.6)";
+    this.ctx.fillRect(6, 6, 180, 160);
+
     this.ctx.fillStyle = "#e5e7eb";
     this.ctx.font = "14px monospace";
 
-    let y = 20;
+    let y = 24;
     const line = 16;
 
     this.ctx.fillText(`Pop: ${population}`, 12, y); y += line;
