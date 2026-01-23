@@ -42,15 +42,7 @@ This naturally produces population cycles, trait optimization, and extinction ev
 - Agents and food rendered in real time  
 - Energy visualized via color and size  
 - HUD showing population, speed, and traits  
-- Time-series graphs for population and traits  
-
-## ⚙️ Tech Stack
-
-- TypeScript
-- Node.js
-- Vite
-- HTML Canvas  
-- No external game engines
+- Time-series graphs for population and traits 
 
 ## ▶️ Run Locally
 
