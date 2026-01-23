@@ -1,10 +1,14 @@
 import { World } from "../engine/world";
 import { Agent } from "../engine/agent";
 import { Food } from "../engine/food";
+import { Graphs } from "./graphs";
 
 export class Renderer {
   private ctx: CanvasRenderingContext2D;
   private scale: number;
+
+  private popGraph: Graphs;
+  private speedGraph: Graphs;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -17,6 +21,23 @@ export class Renderer {
 
     this.ctx = ctx;
     this.scale = canvas.width / world.width;
+
+    // Initialize graphs AFTER ctx exists
+    this.popGraph = new Graphs(
+      this.ctx,
+      this.canvas.width - 260,
+      20,
+      240,
+      100
+    );
+
+    this.speedGraph = new Graphs(
+      this.ctx,
+      this.canvas.width - 260,
+      140,
+      240,
+      100
+    );
   }
 
   clear() {
@@ -58,7 +79,9 @@ export class Renderer {
     speed: number,
     paused: boolean,
     avgSpeed?: number,
-    avgVision?: number
+    avgVision?: number,
+    populationHistory?: number[],
+    avgSpeedHistory?: number[]
   ) {
     this.clear();
 
@@ -77,6 +100,14 @@ export class Renderer {
       avgSpeed,
       avgVision
     );
+
+    if (populationHistory && avgSpeedHistory) {
+      this.popGraph.frame("Population");
+      this.popGraph.drawLine(populationHistory, "#38bdf8");
+
+      this.speedGraph.frame("Avg Speed");
+      this.speedGraph.drawLine(avgSpeedHistory, "#fbbf24");
+    }
   }
 
   /** HUD overlay */

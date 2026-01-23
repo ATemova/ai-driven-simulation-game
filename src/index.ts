@@ -79,7 +79,7 @@ function loop(now: number) {
   const avgVision =
     lastIndex >= 0 ? metrics.avgVision[lastIndex] : undefined;
 
-  renderer.render(clock.speed, clock.paused, avgSpeed, avgVision);
+  renderer.render( clock.speed, clock.paused, avgSpeed, avgVision, metrics.population, metrics.avgSpeed );
 
   requestAnimationFrame(loop);
 }
