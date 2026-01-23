@@ -15,6 +15,14 @@ const canvas = document.getElementById("sim") as HTMLCanvasElement;
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+
+window.addEventListener("resize", resize);
+resize();
+
 // World & RNG
 const world = new World(CONFIG.worldSize, CONFIG.worldSize);
 const rng = new RNG(123);

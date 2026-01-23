@@ -7,6 +7,32 @@ export class Graphs {
     private height: number
   ) {}
 
+  frame(label: string) {
+    const ctx = this.ctx;
+
+    ctx.strokeStyle = "#334155";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(this.x, this.y, this.width, this.height);
+
+    ctx.fillStyle = "#cbd5f5";
+    ctx.font = "12px monospace";
+    ctx.fillText(label, this.x + 6, this.y - 6);
+  }
+
+  drawGrid(lines = 4) {
+    const ctx = this.ctx;
+    ctx.strokeStyle = "#1e293b";
+    ctx.lineWidth = 1;
+
+    for (let i = 1; i < lines; i++) {
+      const y = this.y + (i / lines) * this.height;
+      ctx.beginPath();
+      ctx.moveTo(this.x, y);
+      ctx.lineTo(this.x + this.width, y);
+      ctx.stroke();
+    }
+  }
+
   drawLine(data: number[], color: string, maxValue?: number) {
     if (data.length < 2) return;
 
@@ -27,17 +53,5 @@ export class Graphs {
     });
 
     ctx.stroke();
-  }
-
-  frame(label: string) {
-    const ctx = this.ctx;
-
-    ctx.strokeStyle = "#334155";
-    ctx.lineWidth = 1;
-    ctx.strokeRect(this.x, this.y, this.width, this.height);
-
-    ctx.fillStyle = "#cbd5f5";
-    ctx.font = "12px monospace";
-    ctx.fillText(label, this.x + 6, this.y - 6);
   }
 }

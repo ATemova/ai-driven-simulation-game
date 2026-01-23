@@ -1,13 +1,15 @@
 <p align="center">
   <img src="https://img.shields.io/badge/TypeScript-5.x-blue" />
   <img src="https://img.shields.io/badge/Node.js-18+-green" />
+  <img src="https://img.shields.io/badge/simulation-deterministic-purple" />
+  <img src="https://img.shields.io/badge/model-agent--based-informational" />
   <img src="https://img.shields.io/badge/status-active-success" />
   <img src="https://img.shields.io/badge/license-MIT-orange" />
 </p>
 
 # 🧬 AI-Driven Simulation Game
 
-An **agent-based artificial life simulation** where autonomous agents move, consume resources, reproduce, and evolve based on simple decision rules — producing **emergent behavior** without any scripted outcomes.
+An **agent-based artificial life simulation** in which autonomous agents move, consume resources, reproduce, and evolve under environmental pressure, producing **emergent behavior** without scripted logic or fitness functions.
 
 The project emphasizes **systems design, determinism, simulation architecture, and data-driven visualization**, rather than traditional gameplay mechanics.
 
@@ -95,21 +97,35 @@ npm install
 ```bash
 npm run dev
 ```
+## 🎮 Controls
+
+- **Space** — Pause / resume simulation
+- **1** — Simulation speed ×1
+- **2** — Simulation speed ×5
+- **3** — Simulation speed ×20
+
+Controls allow observation of emergent behavior at different time scales.
+
+## 🧩 Design Principles
+
+- **Separation of concerns** — engine, systems, and UI are strictly decoupled
+- **Determinism first** — all randomness is seeded and reproducible
+- **Emergence over scripting** — no hardcoded behaviors or outcomes
+- **Observability** — metrics and visualization are first-class features
+
 ## 🔬 Determinism
 The simulation uses a seeded random number generator:
 - Same seed → same evolution
 - Enables debugging, replayability, and analysis
 - Essential for correctness in simulations
 
-## 📈 Current Status
-- ✅ Week 1 — Core simulation engine
-- ✅ Week 2 — Evolution, reproduction, and mutation
-- ✅ Week 3 — Real-time visualization, controls, and metrics
-- ⏳ Week 4 — Environment controls, graphs, and final polish
-
 ## 🚀 Planned Extensions
-- Live population & trait graphs
-- Environmental manipulation (climate, scarcity)
+
+- Environmental controls (climate, scarcity, shocks)
 - Multiple species and predator–prey dynamics
 - Save / load and replay support
 - Performance optimizations for large populations
+- Experimental AI decision models (e.g. utility scoring, simple networks)
+
+## 🖥️ Demo
+> A short demo GIF/video will be added after Week 4 polish.
