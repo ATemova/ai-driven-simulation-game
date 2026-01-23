@@ -2,6 +2,7 @@ import { World } from "../engine/world";
 import { Agent } from "../engine/agent";
 import { Food } from "../engine/food";
 import { Graphs } from "./graphs";
+import { CONFIG } from "../engine/config";
 
 export class Renderer {
   private ctx: CanvasRenderingContext2D;
@@ -122,17 +123,26 @@ export class Renderer {
     this.ctx.font = "14px monospace";
 
     let y = 20;
-    this.ctx.fillText(`Pop: ${population}`, 12, y); y += 16;
-    this.ctx.fillText(`Speed: x${speed}`, 12, y); y += 16;
-    this.ctx.fillText(paused ? "Paused" : "Running", 12, y); y += 16;
+    const line = 16;
+
+    this.ctx.fillText(`Pop: ${population}`, 12, y); y += line;
+    this.ctx.fillText(`Speed: x${speed}`, 12, y); y += line;
+    this.ctx.fillText(paused ? "Paused" : "Running", 12, y); y += line;
 
     if (avgSpeed !== undefined) {
       this.ctx.fillText(`AvgSpeed: ${avgSpeed.toFixed(2)}`, 12, y);
-      y += 16;
+      y += line;
     }
 
     if (avgVision !== undefined) {
       this.ctx.fillText(`AvgVision: ${avgVision.toFixed(2)}`, 12, y);
+      y += line;
     }
+
+    this.ctx.fillText(`Food: ${CONFIG.initialFood}`, 12, y);
+    y += line;
+
+    this.ctx.fillText(
+      `Mutation: ${CONFIG.mutationStrength.toFixed(2)}`, 12, y);
   }
 }

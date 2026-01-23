@@ -9,11 +9,15 @@ import { Renderer } from "./ui/renderer";
 import { SimClock } from "./ui/simClock";
 import { setupControls } from "./ui/controls";
 import { Metrics } from "./ui/metrics";
+import { setupEnvironmentControls } from "./ui/environmentControls";
+
 
 // Canvas setup
 const canvas = document.getElementById("sim") as HTMLCanvasElement;
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
+
+setupEnvironmentControls();
 
 function resize() {
   canvas.width = window.innerWidth;
