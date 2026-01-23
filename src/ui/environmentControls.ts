@@ -1,10 +1,10 @@
 import { CONFIG } from "../engine/config";
 
-/** Which trait graph is currently shown */
+/* Which trait graph is currently shown */
 export type GraphMode = "speed" | "vision" | "metabolism";
 export let graphMode: GraphMode = "speed";
 
-/** Environment + graph controls */
+/* Environment + graph controls */
 export function setupEnvironmentControls() {
   window.addEventListener("keydown", (e) => {
     switch (e.key) {
@@ -29,29 +29,24 @@ export function setupEnvironmentControls() {
       // Graph mode toggle
       case "g":
       case "G":
-        graphMode =
-          graphMode === "speed"
-            ? "vision"
-            : graphMode === "vision"
-            ? "metabolism"
-            : "speed";
+        graphMode = graphMode === "speed" ? "vision" : graphMode === "vision" ? "metabolism" : "speed";
         break;
     }
   });
 }
 
-/** Reset & reseed controls */
+/* Reset & reseed controls */
 export function setupResetControls(
   reset: () => void,
   reseed: () => void
 ) {
   window.addEventListener("keydown", (e) => {
     if (e.key === "r") {
-      reset(); // reset with same seed
+      reset();
     }
 
     if (e.key === "n") {
-      reseed(); // reset with new seed
+      reseed();
     }
   });
 }   

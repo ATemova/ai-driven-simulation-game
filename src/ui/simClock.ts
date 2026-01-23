@@ -1,9 +1,9 @@
 export class SimClock {
-  speed = 1;       // simulation speed multiplier
+  speed = 1;
   paused = false;
 
   private accumulator = 0;
-  private readonly fixedStep = 1 / 60; // 60 sim ticks per second
+  private readonly fixedStep = 1 / 60;
 
   update(deltaTime: number, tickFn: () => void) {
     if (this.paused) return;

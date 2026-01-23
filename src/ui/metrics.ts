@@ -6,7 +6,7 @@ export class Metrics {
   avgVision: number[] = [];
   avgMetabolism: number[] = [];
 
-  maxSamples = 1000; // prevent memory blowup
+  maxSamples = 1000;
 
   sample(world: World) {
     const agents = world.agents;
@@ -29,8 +29,7 @@ export class Metrics {
       this.avgVision.push(0);
       this.avgMetabolism.push(0);
     }
-
-    // Trim history
+    
     if (this.population.length > this.maxSamples) {
       this.population.shift();
       this.avgSpeed.shift();
@@ -45,5 +44,4 @@ export class Metrics {
   this.avgVision = [];
   this.avgMetabolism = [];
   }
-
 }

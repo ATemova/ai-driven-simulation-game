@@ -25,19 +25,11 @@ export class Renderer {
     this.scale = canvas.width / world.width;
 
     this.popGraph = new Graphs(
-      this.ctx,
-      this.canvas.width - 260,
-      20,
-      240,
-      100
+      this.ctx, this.canvas.width - 260, 20, 240, 100
     );
 
     this.traitGraph = new Graphs(
-      this.ctx,
-      this.canvas.width - 260,
-      140,
-      240,
-      100
+      this.ctx, this.canvas.width - 260, 140, 240, 100
     );
   }
 
@@ -73,13 +65,7 @@ export class Renderer {
     const b = 60;
 
     this.ctx.beginPath();
-    this.ctx.arc(
-      agent.x * this.scale,
-      agent.y * this.scale,
-      radius,
-      0,
-      Math.PI * 2
-    );
+    this.ctx.arc(agent.x * this.scale, agent.y * this.scale, radius, 0, Math.PI * 2);
 
     this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
     this.ctx.fill();
@@ -89,26 +75,11 @@ export class Renderer {
     this.ctx.stroke();
   }
 
-  /** Main render entry point */
-  render(
-    speed: number,
-    paused: boolean,
-    avgSpeed?: number,
-    avgVision?: number,
-    populationHistory?: number[],
-    avgSpeedHistory?: number[],
-    avgVisionHistory?: number[],
-    avgMetabolismHistory?: number[]
-  ) {
+  /* Main render entry point */
+  render(speed: number, paused: boolean, avgSpeed?: number, avgVision?: number, populationHistory?: number[], avgSpeedHistory?: number[], avgVisionHistory?: number[], avgMetabolismHistory?: number[]) {
     if (paused) {
       this.clear();
-      this.drawOverlay(
-        this.world.agents.length,
-        speed,
-        paused,
-        avgSpeed,
-        avgVision
-      );
+      this.drawOverlay(this.world.agents.length, speed, paused, avgSpeed, avgVision);
       return;
     }
 
@@ -117,13 +88,7 @@ export class Renderer {
     for (const food of this.world.food) this.drawFood(food);
     for (const agent of this.world.agents) this.drawAgent(agent);
 
-    this.drawOverlay(
-      this.world.agents.length,
-      speed,
-      paused,
-      avgSpeed,
-      avgVision
-    );
+    this.drawOverlay(this.world.agents.length, speed, paused, avgSpeed, avgVision);
 
     // 📈 Population graph
     if (populationHistory) {
@@ -157,15 +122,8 @@ export class Renderer {
     }
   }
 
-  /** HUD overlay */
-  drawOverlay(
-    population: number,
-    speed: number,
-    paused: boolean,
-    avgSpeed?: number,
-    avgVision?: number
-  ) {
-    // HUD background
+  /* HUD overlay */
+  drawOverlay(population: number, speed: number, paused: boolean, avgSpeed?: number, avgVision?: number) {
     this.ctx.fillStyle = "rgba(15, 23, 42, 0.6)";
     this.ctx.fillRect(6, 6, 180, 160);
 

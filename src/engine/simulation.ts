@@ -9,36 +9,29 @@ import { CONFIG } from "./config";
 
 let NEXT_ID = 1000;
 
-/** Mutate a trait value within bounds */
+/* Mutate a trait value within bounds */
 function mutate(value: number, rng: RNG): number {
-  const factor =
-    1 + rng.range(-CONFIG.mutationStrength, CONFIG.mutationStrength);
+  const factor = 1 + rng.range(-CONFIG.mutationStrength, CONFIG.mutationStrength);
   return Math.max(0.1, value * factor);
 }
 
-/** Create offspring agent */
+/* Create offspring agent */
 function reproduce(parent: Agent, rng: RNG): Agent {
   const t = parent.traits;
 
   const childTraits: Traits = {
-    speed: mutate(t.speed, rng),
-    vision: mutate(t.vision, rng),
-    metabolism: mutate(t.metabolism, rng)
+    speed: mutate(t.speed, rng), vision: mutate(t.vision, rng), metabolism: mutate(t.metabolism, rng)
   };
 
   parent.energy -= CONFIG.reproductionCost;
   parent.reproductionCooldown = CONFIG.reproductionCooldown;
 
   return new Agent(
-    NEXT_ID++,
-    parent.x + rng.range(-1, 1),
-    parent.y + rng.range(-1, 1),
-    childTraits,
-    parent.generation + 1
+    NEXT_ID++, parent.x + rng.range(-1, 1), parent.y + rng.range(-1, 1), childTraits, parent.generation + 1
   );
 }
 
-/** Advance simulation by one tick */
+/* Advance simulation by one tick */
 export function tick(world: World, rng: RNG) {
   const newborns: Agent[] = [];
 
@@ -64,7 +57,7 @@ export function tick(world: World, rng: RNG) {
       }
     }
 
-    // Reproduction (with population cap)
+    // Reproduction
     if (
       agent.energy >= CONFIG.reproductionEnergy &&
       agent.reproductionCooldown <= 0 &&
@@ -84,17 +77,16 @@ export function tick(world: World, rng: RNG) {
     }
   }
 
-  // Add newborns (after loop)
+  // Add newborns
   for (const child of newborns) {
     world.addAgent(child);
   }
 
-  // Respawn food (with cap)
+  // Respawn food
   if (world.food.length < CONFIG.maxFood) {
     world.addFood(
       new Food(
-        rng.range(0, world.width),
-        rng.range(0, world.height)
+        rng.range(0, world.width), rng.range(0, world.height)
       )
     );
   }

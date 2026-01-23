@@ -1,11 +1,5 @@
 export class Graphs {
-  constructor(
-    private ctx: CanvasRenderingContext2D,
-    private x: number,
-    private y: number,
-    private width: number,
-    private height: number
-  ) {}
+  constructor(private ctx: CanvasRenderingContext2D, private x: number, private y: number, private width: number, private height: number) {}
 
   frame(label: string) {
     const ctx = this.ctx;
@@ -48,14 +42,13 @@ export class Graphs {
 
     data.forEach((value, i) => {
       const px = this.x + (i / (data.length - 1)) * this.width;
-      const py =
-        this.y + this.height - (value / max) * this.height;
+      const py = this.y + this.height - (value / max) * this.height;
 
       if (i === 0) ctx.moveTo(px, py);
       else ctx.lineTo(px, py);
     });
 
     ctx.stroke();
-    ctx.globalAlpha = 1;          // reset (safe for other drawing)
+    ctx.globalAlpha = 1;
   }
 }

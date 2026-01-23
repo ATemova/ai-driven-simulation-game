@@ -14,9 +14,7 @@ import {
   setupResetControls
 } from "./ui/environmentControls";
 
-// =======================
 // Canvas setup
-// =======================
 const canvas = document.getElementById("sim") as HTMLCanvasElement;
 
 function resize() {
@@ -26,36 +24,25 @@ function resize() {
 window.addEventListener("resize", resize);
 resize();
 
-// =======================
 // Metrics
-// =======================
 const metrics = new Metrics();
 let sampleCounter = 0;
 
-// =======================
 // Simulation state
-// =======================
 let seed = 123;
 let world: World;
 let rng: RNG;
 
-// =======================
 // World creation
-// =======================
 function createWorld(): { world: World; rng: RNG } {
   const world = new World(CONFIG.worldSize, CONFIG.worldSize);
   const rng = new RNG(seed);
 
   for (let i = 0; i < CONFIG.initialAgents; i++) {
     world.addAgent(
-      new Agent(
-        i,
-        rng.range(0, CONFIG.worldSize),
-        rng.range(0, CONFIG.worldSize),
+      new Agent(i, rng.range(0, CONFIG.worldSize), rng.range(0, CONFIG.worldSize),
         {
-          speed: rng.range(0.8, 1.2),
-          vision: rng.range(4, 8),
-          metabolism: rng.range(0.8, 1.2)
+          speed: rng.range(0.8, 1.2), vision: rng.range(4, 8), metabolism: rng.range(0.8, 1.2)
         }
       )
     );
@@ -63,9 +50,7 @@ function createWorld(): { world: World; rng: RNG } {
 
   for (let i = 0; i < CONFIG.initialFood; i++) {
     world.addFood(
-      new Food(
-        rng.range(0, CONFIG.worldSize),
-        rng.range(0, CONFIG.worldSize)
+      new Food(rng.range(0, CONFIG.worldSize), rng.range(0, CONFIG.worldSize)
       )
     );
   }
@@ -76,19 +61,13 @@ function createWorld(): { world: World; rng: RNG } {
   return { world, rng };
 }
 
-// =======================
 // Initial world
-// =======================
 ({ world, rng } = createWorld());
 
-// =======================
 // Renderer
-// =======================
 const renderer = new Renderer(canvas, world);
 
-// =======================
 // Controls
-// =======================
 const clock = new SimClock();
 setupControls(clock);
 setupEnvironmentControls();
@@ -105,9 +84,7 @@ setupResetControls(
   }
 );
 
-// =======================
 // Main loop
-// =======================
 let lastTime = performance.now();
 
 function loop(now: number) {
@@ -127,21 +104,10 @@ function loop(now: number) {
   });
 
   const lastIndex = metrics.population.length - 1;
-  const avgSpeed =
-    lastIndex >= 0 ? metrics.avgSpeed[lastIndex] : undefined;
-  const avgVision =
-    lastIndex >= 0 ? metrics.avgVision[lastIndex] : undefined;
+  const avgSpeed = lastIndex >= 0 ? metrics.avgSpeed[lastIndex] : undefined;
+  const avgVision = lastIndex >= 0 ? metrics.avgVision[lastIndex] : undefined;
 
-  renderer.render(
-    clock.speed,
-    clock.paused,
-    avgSpeed,
-    avgVision,
-    metrics.population,
-    metrics.avgSpeed,
-    metrics.avgVision,
-    metrics.avgMetabolism
-  );
+  renderer.render(clock.speed, clock.paused, avgSpeed, avgVision, metrics.population, metrics.avgSpeed, metrics.avgVision, metrics.avgMetabolism);
 
   requestAnimationFrame(loop);
 }
