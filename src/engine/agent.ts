@@ -4,30 +4,18 @@ export interface Traits {
   metabolism: number;
 }
 
+export type TraitName = keyof Traits;
+
 export class Agent {
-  id: number;
-  x: number;
-  y: number;
-
-  energy = 100;
   age = 0;
-  generation: number;
-
-  traits: Traits;
-
   reproductionCooldown = 0;
 
   constructor(
-    id: number,
-    x: number,
-    y: number,
-    traits: Traits,
-    generation = 0
-  ) {
-    this.id = id;
-    this.x = x;
-    this.y = y;
-    this.traits = traits;
-    this.generation = generation;
-  }
+    public readonly id: number,
+    public x: number,
+    public y: number,
+    public readonly traits: Traits,
+    public energy: number,
+    public readonly generation = 0
+  ) {}
 }

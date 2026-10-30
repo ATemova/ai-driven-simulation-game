@@ -1,93 +1,86 @@
 import { World } from "./world";
 import { RNG } from "./rng";
-import { Food } from "./food";
-import { Agent, Traits } from "./agent";
-import { perceiveFood } from "../systems/perception";
+import { Agent, TraitName, Traits } from "./agent";
+import { nearestVisibleFood } from "../systems/perception";
 import { decide } from "../systems/decision";
 import { move } from "../systems/movement";
 import { CONFIG } from "./config";
 
-let NEXT_ID = 1000;
+const TRAITS: TraitName[] = ["speed", "vision", "metabolism"];
 
-/* Mutate a trait value within bounds */
-function mutate(value: number, rng: RNG): number {
-  const factor = 1 + rng.range(-CONFIG.mutationStrength, CONFIG.mutationStrength);
-  return Math.max(0.1, value * factor);
+function mutate(name: TraitName, value: number, world: World, rng: RNG): number {
+  const { mutationRate, mutationStrength } = world.settings;
+  if (rng.next() >= mutationRate) return value;
+  const factor = 1 + rng.range(-mutationStrength, mutationStrength);
+  const [min, max] = CONFIG.traitBounds[name];
+  return Math.min(max, Math.max(min, value * factor));
 }
 
-/* Create offspring agent */
-function reproduce(parent: Agent, rng: RNG): Agent {
-  const t = parent.traits;
-
-  const childTraits: Traits = {
-    speed: mutate(t.speed, rng), vision: mutate(t.vision, rng), metabolism: mutate(t.metabolism, rng)
-  };
+function reproduce(parent: Agent, world: World, rng: RNG): Agent {
+  const traits = {} as Traits;
+  for (const name of TRAITS) traits[name] = mutate(name, parent.traits[name], world, rng);
 
   parent.energy -= CONFIG.reproductionCost;
   parent.reproductionCooldown = CONFIG.reproductionCooldown;
 
   return new Agent(
-    NEXT_ID++, parent.x + rng.range(-1, 1), parent.y + rng.range(-1, 1), childTraits, parent.generation + 1
+    world.nextId++,
+    parent.x + rng.range(-1, 1),
+    parent.y + rng.range(-1, 1),
+    traits,
+    CONFIG.reproductionCost,
+    parent.generation + 1
   );
 }
 
-/* Advance simulation by one tick */
+export function energyDrain(t: Traits): number {
+  return (
+    CONFIG.baseDrain * t.metabolism * t.metabolism +
+    CONFIG.speedCost * t.speed * t.speed +
+    CONFIG.visionCost * t.vision
+  );
+}
+
+export function foodGain(t: Traits, foodEnergy: number): number {
+  return foodEnergy * Math.sqrt(t.metabolism);
+}
+
+/** Advance the simulation by one fixed step. */
 export function tick(world: World, rng: RNG) {
   const newborns: Agent[] = [];
 
-  // Iterate backwards for safe removal
-  for (let i = world.agents.length - 1; i >= 0; i--) {
-    const agent = world.agents[i];
-
-    // Perception & decision
-    const visibleFood = perceiveFood(agent, world.food);
-    const decision = decide(agent, visibleFood);
-
-    // Movement
+  for (const agent of world.agents) {
+    const decision = decide(agent, nearestVisibleFood(agent, world));
     move(agent, decision, rng);
-    world.clampPosition(agent);
+    [agent.x, agent.y] = world.clamp(agent.x, agent.y);
 
-    // Eat food
-    for (let j = world.food.length - 1; j >= 0; j--) {
-      const food = world.food[j];
-      if (Math.hypot(food.x - agent.x, food.y - agent.y) < 1) {
-        agent.energy += food.energy;
-        world.food.splice(j, 1);
-        break;
-      }
+    const food = world.foodGrid.nearest(agent.x, agent.y, CONFIG.eatRadius);
+    if (food) {
+      agent.energy += foodGain(agent.traits, food.energy);
+      world.removeFood(food);
     }
 
-    // Reproduction
     if (
       agent.energy >= CONFIG.reproductionEnergy &&
       agent.reproductionCooldown <= 0 &&
       world.agents.length + newborns.length < CONFIG.maxAgents
     ) {
-      newborns.push(reproduce(agent, rng));
+      newborns.push(reproduce(agent, world, rng));
     }
 
-    // Metabolism & aging
-    agent.reproductionCooldown--;
-    agent.energy -= agent.traits.metabolism * 0.05;
+    if (agent.reproductionCooldown > 0) agent.reproductionCooldown--;
+    agent.energy -= energyDrain(agent.traits);
     agent.age++;
-
-    // Death
-    if (agent.energy <= 0 || agent.age > CONFIG.maxAge) {
-      world.agents.splice(i, 1);
-    }
   }
 
-  // Add newborns
-  for (const child of newborns) {
-    world.addAgent(child);
+  world.agents = world.agents.filter(a => a.energy > 0 && a.age <= CONFIG.maxAge);
+  for (const child of newborns) world.addAgent(child);
+
+  world.foodAccumulator += world.settings.foodPerTick;
+  while (world.foodAccumulator >= 1) {
+    world.foodAccumulator -= 1;
+    world.addFood(rng.range(0, world.width), rng.range(0, world.height));
   }
 
-  // Respawn food
-  if (world.food.length < CONFIG.maxFood) {
-    world.addFood(
-      new Food(
-        rng.range(0, world.width), rng.range(0, world.height)
-      )
-    );
-  }
+  world.tickCount++;
 }

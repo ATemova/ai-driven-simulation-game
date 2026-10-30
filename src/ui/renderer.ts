@@ -1,157 +1,151 @@
 import { World } from "../engine/world";
 import { Agent } from "../engine/agent";
-import { Food } from "../engine/food";
-import { Graphs } from "./graphs";
 import { CONFIG } from "../engine/config";
-import { graphMode } from "./environmentControls";
+import { Graph } from "./graphs";
+import { Metrics } from "./metrics";
+import { GraphMode } from "./controls";
+
+export interface HudState {
+  seed: number;
+  speed: number;
+  paused: boolean;
+  graphMode: GraphMode;
+}
+
+const BG = "#020617";
+
+const TRAIT_GRAPHS: Record<GraphMode, { label: string; color: string; key: keyof Metrics }> = {
+  speed: { label: "Avg speed", color: "#fbbf24", key: "avgSpeed" },
+  vision: { label: "Avg vision", color: "#a78bfa", key: "avgVision" },
+  metabolism: { label: "Avg metabolism", color: "#fb7185", key: "avgMetabolism" }
+};
 
 export class Renderer {
   private ctx: CanvasRenderingContext2D;
-  private scale: number;
+  private cssWidth = 0;
+  private cssHeight = 0;
+  private scale = 1;
+  private offsetX = 0;
+  private offsetY = 0;
+  private popGraph: Graph;
+  private traitGraph: Graph;
 
-  private popGraph: Graphs;
-  private traitGraph: Graphs;
-
-  constructor(
-    private canvas: HTMLCanvasElement,
-    private world: World
-  ) {
+  constructor(private canvas: HTMLCanvasElement, private world: World) {
     const ctx = canvas.getContext("2d");
-    if (!ctx) {
-      throw new Error("Failed to get 2D context");
-    }
-
+    if (!ctx) throw new Error("Failed to get 2D context");
     this.ctx = ctx;
-    this.scale = canvas.width / world.width;
+    this.popGraph = new Graph(ctx, 0, 0, 0, 0);
+    this.traitGraph = new Graph(ctx, 0, 0, 0, 0);
+    this.resize();
+  }
 
-    this.popGraph = new Graphs(
-      this.ctx, this.canvas.width - 260, 20, 240, 100
+  setWorld(world: World) {
+    this.world = world;
+    this.resize();
+  }
+
+  resize() {
+    const dpr = window.devicePixelRatio || 1;
+    this.cssWidth = window.innerWidth;
+    this.cssHeight = window.innerHeight;
+    this.canvas.width = Math.round(this.cssWidth * dpr);
+    this.canvas.height = Math.round(this.cssHeight * dpr);
+    this.canvas.style.width = `${this.cssWidth}px`;
+    this.canvas.style.height = `${this.cssHeight}px`;
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const margin = 12;
+    const sideGutter = 260;
+    const topBand = this.cssWidth - sideGutter * 2 < this.cssHeight * 0.75 ? 250 : 0;
+    const availW = this.cssWidth - (topBand ? 0 : sideGutter * 2) - margin * 2;
+    const availH = this.cssHeight - topBand - margin * 2;
+    const side = Math.max(1, Math.min(availW, availH));
+    this.scale = side / Math.max(this.world.width, this.world.height);
+    this.offsetX = (this.cssWidth - this.world.width * this.scale) / 2;
+    this.offsetY = topBand + (this.cssHeight - topBand - this.world.height * this.scale) / 2;
+
+    const gw = Math.min(240, this.cssWidth * 0.4);
+    const gx = this.cssWidth - gw - 16;
+    this.popGraph.x = gx; this.popGraph.y = 30; this.popGraph.width = gw; this.popGraph.height = 90;
+    this.traitGraph.x = gx; this.traitGraph.y = 150; this.traitGraph.width = gw; this.traitGraph.height = 90;
+
+    this.ctx.fillStyle = BG;
+    this.ctx.fillRect(0, 0, this.cssWidth, this.cssHeight);
+  }
+
+  render(metrics: Metrics, hud: HudState) {
+    const ctx = this.ctx;
+
+    ctx.fillStyle = hud.paused ? BG : "rgba(2, 6, 23, 0.35)";
+    ctx.fillRect(0, 0, this.cssWidth, this.cssHeight);
+
+    ctx.strokeStyle = "#1e293b";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(
+      this.offsetX, this.offsetY,
+      this.world.width * this.scale, this.world.height * this.scale
     );
 
-    this.traitGraph = new Graphs(
-      this.ctx, this.canvas.width - 260, 140, 240, 100
-    );
-  }
-
-  clear() {
-    // Slight fade for motion trails
-    this.ctx.fillStyle = "rgba(15, 23, 42, 0.35)";
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-  }
-
-  drawFood(food: Food) {
-    const x = food.x * this.scale;
-    const y = food.y * this.scale;
-
-    // Glow
-    this.ctx.beginPath();
-    this.ctx.arc(x, y, 4, 0, Math.PI * 2);
-    this.ctx.fillStyle = "rgba(34, 197, 94, 0.25)";
-    this.ctx.fill();
-
-    // Core
-    this.ctx.beginPath();
-    this.ctx.arc(x, y, 2.2, 0, Math.PI * 2);
-    this.ctx.fillStyle = "#22c55e";
-    this.ctx.fill();
-  }
-
-  drawAgent(agent: Agent) {
-    const energyRatio = Math.min(agent.energy / 150, 1);
-    const radius = 3 + energyRatio * 2;
-
-    const r = Math.floor(180 + energyRatio * 60);
-    const g = Math.floor(60 + energyRatio * 40);
-    const b = 60;
-
-    this.ctx.beginPath();
-    this.ctx.arc(agent.x * this.scale, agent.y * this.scale, radius, 0, Math.PI * 2);
-
-    this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-    this.ctx.fill();
-
-    this.ctx.strokeStyle = "rgba(0,0,0,0.3)";
-    this.ctx.lineWidth = 0.5;
-    this.ctx.stroke();
-  }
-
-  /* Main render entry point */
-  render(speed: number, paused: boolean, avgSpeed?: number, avgVision?: number, populationHistory?: number[], avgSpeedHistory?: number[], avgVisionHistory?: number[], avgMetabolismHistory?: number[]) {
-    if (paused) {
-      this.clear();
-      this.drawOverlay(this.world.agents.length, speed, paused, avgSpeed, avgVision);
-      return;
-    }
-
-    this.clear();
-
-    for (const food of this.world.food) this.drawFood(food);
+    this.drawFood();
     for (const agent of this.world.agents) this.drawAgent(agent);
 
-    this.drawOverlay(this.world.agents.length, speed, paused, avgSpeed, avgVision);
+    this.drawHud(metrics, hud);
 
-    // 📈 Population graph
-    if (populationHistory) {
-      this.popGraph.frame("Population");
-      this.popGraph.drawGrid();
-      this.popGraph.drawLine(populationHistory, "#38bdf8");
-    }
-
-    // 🧬 Trait graph
-    let label = "";
-    let data: number[] | undefined;
-    let color = "#fbbf24";
-
-    if (graphMode === "speed") {
-      label = "Avg Speed";
-      data = avgSpeedHistory;
-    } else if (graphMode === "vision") {
-      label = "Avg Vision";
-      data = avgVisionHistory;
-      color = "#a78bfa";
-    } else {
-      label = "Avg Metabolism";
-      data = avgMetabolismHistory;
-      color = "#fb7185";
-    }
-
-    if (data) {
-      this.traitGraph.frame(label);
-      this.traitGraph.drawGrid();
-      this.traitGraph.drawLine(data, color);
-    }
+    this.popGraph.draw("Population", metrics.population, "#38bdf8", { zeroBased: true, digits: 0 });
+    const tg = TRAIT_GRAPHS[hud.graphMode];
+    this.traitGraph.draw(`${tg.label} (g)`, metrics[tg.key] as number[], tg.color);
   }
 
-  /* HUD overlay */
-  drawOverlay(population: number, speed: number, paused: boolean, avgSpeed?: number, avgVision?: number) {
-    this.ctx.fillStyle = "rgba(15, 23, 42, 0.6)";
-    this.ctx.fillRect(6, 6, 180, 160);
-
-    this.ctx.fillStyle = "#e5e7eb";
-    this.ctx.font = "14px monospace";
-
-    let y = 24;
-    const line = 16;
-
-    this.ctx.fillText(`Pop: ${population}`, 12, y); y += line;
-    this.ctx.fillText(`Speed: x${speed}`, 12, y); y += line;
-    this.ctx.fillText(paused ? "Paused" : "Running", 12, y); y += line;
-
-    if (avgSpeed !== undefined) {
-      this.ctx.fillText(`AvgSpeed: ${avgSpeed.toFixed(2)}`, 12, y);
-      y += line;
+  private drawFood() {
+    const ctx = this.ctx;
+    ctx.fillStyle = "#22c55e";
+    ctx.beginPath();
+    for (const f of this.world.food) {
+      const x = this.offsetX + f.x * this.scale;
+      const y = this.offsetY + f.y * this.scale;
+      ctx.moveTo(x + 2.2, y);
+      ctx.arc(x, y, 2.2, 0, Math.PI * 2);
     }
+    ctx.fill();
+  }
 
-    if (avgVision !== undefined) {
-      this.ctx.fillText(`AvgVision: ${avgVision.toFixed(2)}`, 12, y);
-      y += line;
-    }
+  private drawAgent(agent: Agent) {
+    const ctx = this.ctx;
+    const e = Math.min(Math.max(agent.energy / CONFIG.reproductionEnergy, 0), 1);
+    const radius = 2.5 + e * 2.5;
 
-    this.ctx.fillText(`Food: ${CONFIG.initialFood}`, 12, y); y += line;
-    this.ctx.fillText(
-      `Mutation: ${CONFIG.mutationStrength.toFixed(2)}`,
-      12,
-      y
-    );
+    ctx.beginPath();
+    ctx.arc(this.offsetX + agent.x * this.scale, this.offsetY + agent.y * this.scale, radius, 0, Math.PI * 2);
+    ctx.fillStyle = `rgb(${Math.floor(180 + e * 70)}, ${Math.floor(60 + e * 60)}, 60)`;
+    ctx.fill();
+  }
+
+  private drawHud(m: Metrics, hud: HudState) {
+    const ctx = this.ctx;
+    const s = this.world.settings;
+    const lines = [
+      `${hud.paused ? "PAUSED" : "Running"}  x${hud.speed}`,
+      `Tick:  ${this.world.tickCount}`,
+      `Seed:  ${hud.seed}`,
+      `Pop:   ${this.world.agents.length}`,
+      `Gen:   ${m.maxGeneration}`,
+      `Food:  ${this.world.food.length}  (+${s.foodPerTick}/tick)`,
+      `Mut:   ${(s.mutationStrength * 100).toFixed(0)}% @ p=${s.mutationRate}`,
+      "",
+      "space pause  1/2/3 speed",
+      "f/F food  m/M mutation",
+      "g graph  r reset  n new seed",
+      "d defaults"
+    ];
+
+    const lh = 16;
+    ctx.fillStyle = "rgba(15, 23, 42, 0.75)";
+    ctx.fillRect(8, 8, 232, lines.length * lh + 12);
+    ctx.font = "13px monospace";
+    ctx.textBaseline = "alphabetic";
+    lines.forEach((text, i) => {
+      ctx.fillStyle = i >= 8 ? "#64748b" : "#e5e7eb";
+      ctx.fillText(text, 16, 26 + i * lh);
+    });
   }
 }

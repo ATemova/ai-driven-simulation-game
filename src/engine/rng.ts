@@ -1,9 +1,17 @@
+const MOD = 2147483647;
+
+/** Park–Miller minimal standard PRNG. Deterministic for a given seed. */
 export class RNG {
-  constructor(private seed: number) {}
+  private state: number;
+
+  constructor(seed: number) {
+    const s = Math.floor(Math.abs(seed)) % MOD;
+    this.state = s === 0 ? 1 : s;
+  }
 
   next() {
-    this.seed = (this.seed * 16807) % 2147483647;
-    return this.seed / 2147483647;
+    this.state = (this.state * 16807) % MOD;
+    return (this.state - 1) / (MOD - 1);
   }
 
   range(min: number, max: number) {

@@ -1,72 +1,82 @@
 <p align="center">
   <img src="https://img.shields.io/badge/TypeScript-5.x-blue" />
-  <img src="https://img.shields.io/badge/Node.js-18+-green" />
   <img src="https://img.shields.io/badge/simulation-deterministic-purple" />
   <img src="https://img.shields.io/badge/model-agent--based-informational" />
-  <img src="https://img.shields.io/badge/status-complete-success" />
   <img src="https://img.shields.io/badge/license-MIT-orange" />
 </p>
 
 # 🧬 AI-Driven Simulation Game
 
-A **deterministic, agent-based artificial life simulation** where autonomous agents move, consume resources, reproduce, and evolve under environmental pressure—producing **emergent behavior** without scripted logic or fitness functions.
+A **deterministic, agent-based artificial life simulation**. Agents forage, spend energy, reproduce with mutation, and die. Their traits evolve toward whatever the current environment rewards. No fitness function is coded in.
 
-The project focuses on **systems design, simulation architecture, and data-driven visualization**, not traditional gameplay.
+**▶ Live demo:** https://atemova.github.io/ai-driven-simulation-game/
 
-## ✨ Key Features
+> The "AI" here is emergent, not learned: each agent follows the same simple rules (seek the nearest visible food when hungry, otherwise wander). Adaptation happens at the population level through selection on inherited traits.
 
-- Autonomous agents with energy, age, and inheritable traits  
-- Resource-based survival (food, metabolism)  
-- Reproduction with mutation and natural selection  
-- Deterministic simulation using a seeded RNG  
-- Modular engine and systems-based architecture  
-- Real-time Canvas visualization with live metrics  
+## How it works
 
-> No agents are player-controlled.  
-> All behavior emerges from rules + environment.
+Every agent carries three heritable traits, each with a benefit and a cost:
 
-## 🧠 Simulation Loop
+| Trait | Benefit | Cost per tick |
+|---|---|---|
+| **speed** | reaches food first | `0.1 · speed²` |
+| **vision** | detects food from farther away | `0.015 · vision` |
+| **metabolism** | extracts more energy from food (`30 · √metabolism`) | `0.1 · metabolism²` |
 
-Each tick:
-1. Agents perceive nearby food  
-2. A decision system selects an action  
-3. Movement and energy updates occur  
-4. Agents eat, reproduce, age, or die  
-5. Food respawns to maintain ecosystem pressure  
-6. Metrics are sampled for visualization  
+Because every trait carries both a benefit and a cost, selection settles on interior optima instead of drifting to the bounds. Those optima depend on the environment: scarce food favours larger vision and higher speed, while abundant food supports larger populations with cheaper bodies.
 
-This naturally produces population cycles, trait optimization, and extinction events.
+Energy is conserved through reproduction: the parent pays 60 energy, and the child starts with exactly that amount.
 
-## 🎨 Visualization & Metrics
+### Tick order
 
-- Agents and food rendered in real time  
-- Energy visualized via color and size  
-- HUD showing population, speed, and traits  
-- Time-series graphs for population and traits 
+1. Each agent finds the nearest food within its vision (spatial grid lookup).
+2. If its energy is below the hunger threshold it moves toward that food; otherwise it wanders.
+3. It eats any food within reach.
+4. If its energy and cooldown allow, it reproduces. Each trait mutates with probability *p* by up to ±strength.
+5. It pays its energy drain and ages.
+6. Agents that are starved or past maximum age are removed, newborns are added, and food respawns at the configured rate.
 
-## ▶️ Run Locally
+### Determinism
+
+All randomness goes through a seeded Park–Miller RNG, and the simulation runs on a fixed timestep regardless of frame rate. A given **seed plus settings** always produces the same run, and a test checks this by hashing the full world state. The seed is stored in the URL (`?seed=123`), so a run can be shared.
+
+## Controls
+
+| Key | Action |
+|---|---|
+| `Space` | pause / resume |
+| `1` `2` `3` | simulation speed ×1 / ×5 / ×20 |
+| `f` / `F` | food respawn rate − / + (applies immediately) |
+| `m` / `M` | mutation strength − / + |
+| `g` | cycle trait graph (speed → vision → metabolism) |
+| `r` | restart with the same seed and current settings |
+| `n` | restart with a new random seed |
+| `d` | restore default settings and restart |
+
+## Run locally
 
 ```bash
 npm install
-```
-```bash
 npm run dev
 ```
-## 🎮 Controls
 
-- **Space** — pause / resume
-- **1 / 2 / 3** — simulation speed
-- **f / F** — food availability
-- **m / M** — mutation strength
-- **g** — cycle trait graph
-- **r / n** — reset (same / new seed)
+```bash
+npm test
+npm run build
+```
 
-## 🧩 Design Principles
+## Project structure
 
-- Determinism first
-- Emergence over scripting
-- Strong separation of engine, systems, and UI
-- Observability via metrics and visualization
+```
+src/
+  engine/   world, agents, food, spatial grid, RNG, config, tick loop
+  systems/  perception, decision, movement
+  ui/       renderer, graphs, metrics, controls, fixed-step clock
+tests/      determinism + invariant tests (Vitest)
+```
 
-## 🏁 Status
-Feature-complete, portfolio-ready artificial life simulation.
+The engine has no DOM dependencies and runs headless, which is how the tests and parameter tuning work.
+
+## License
+
+MIT

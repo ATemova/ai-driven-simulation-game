@@ -1,113 +1,76 @@
-import { World } from "./engine/world";
-import { Agent } from "./engine/agent";
-import { RNG } from "./engine/rng";
-import { Food } from "./engine/food";
-import { CONFIG } from "./engine/config";
+import { DEFAULT_SETTINGS, Settings } from "./engine/config";
 import { tick } from "./engine/simulation";
-
+import { createSimulation, SimState } from "./engine/setup";
 import { Renderer } from "./ui/renderer";
 import { SimClock } from "./ui/simClock";
-import { setupControls } from "./ui/controls";
 import { Metrics } from "./ui/metrics";
-import {
-  setupEnvironmentControls,
-  setupResetControls
-} from "./ui/environmentControls";
+import { GraphMode, setupControls } from "./ui/controls";
 
-// Canvas setup
 const canvas = document.getElementById("sim") as HTMLCanvasElement;
 
-function resize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+function seedFromUrl(): number {
+  const raw = new URLSearchParams(location.search).get("seed");
+  const n = raw === null ? NaN : Number(raw);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 123;
 }
-window.addEventListener("resize", resize);
-resize();
 
-// Metrics
+function writeSeedToUrl(seed: number) {
+  const url = new URL(location.href);
+  url.searchParams.set("seed", String(seed));
+  history.replaceState(null, "", url);
+}
+
+let settings: Settings = { ...DEFAULT_SETTINGS };
+let sim: SimState = createSimulation(seedFromUrl(), settings);
+let graphMode: GraphMode = "speed";
+
 const metrics = new Metrics();
-let sampleCounter = 0;
+const clock = new SimClock();
+const renderer = new Renderer(canvas, sim.world);
 
-// Simulation state
-let seed = 123;
-let world: World;
-let rng: RNG;
-
-// World creation
-function createWorld(): { world: World; rng: RNG } {
-  const world = new World(CONFIG.worldSize, CONFIG.worldSize);
-  const rng = new RNG(seed);
-
-  for (let i = 0; i < CONFIG.initialAgents; i++) {
-    world.addAgent(
-      new Agent(i, rng.range(0, CONFIG.worldSize), rng.range(0, CONFIG.worldSize),
-        {
-          speed: rng.range(0.8, 1.2), vision: rng.range(4, 8), metabolism: rng.range(0.8, 1.2)
-        }
-      )
-    );
-  }
-
-  for (let i = 0; i < CONFIG.initialFood; i++) {
-    world.addFood(
-      new Food(rng.range(0, CONFIG.worldSize), rng.range(0, CONFIG.worldSize)
-      )
-    );
-  }
-
+function restart(seed: number) {
+  sim = createSimulation(seed, settings);
   metrics.reset();
-  sampleCounter = 0;
-
-  return { world, rng };
+  clock.resetAccumulator();
+  renderer.setWorld(sim.world);
+  writeSeedToUrl(seed);
+  metrics.sample(sim.world);
 }
 
-// Initial world
-({ world, rng } = createWorld());
+window.addEventListener("resize", () => renderer.resize());
 
-// Renderer
-const renderer = new Renderer(canvas, world);
-
-// Controls
-const clock = new SimClock();
-setupControls(clock);
-setupEnvironmentControls();
-
-setupResetControls(
-  () => {
-    // Reset with same seed
-    ({ world, rng } = createWorld());
-  },
-  () => {
-    // Reset with new seed
-    seed = Math.floor(Math.random() * 100000);
-    ({ world, rng } = createWorld());
+setupControls({
+  clock,
+  settings: () => settings,
+  onSettingsChanged: () => Object.assign(sim.world.settings, settings),
+  onGraphMode: (mode) => { graphMode = mode; },
+  onReset: () => restart(sim.seed),
+  onReseed: () => restart(1 + Math.floor(Math.random() * 999_999)),
+  onDefaults: () => {
+    settings = { ...DEFAULT_SETTINGS };
+    restart(sim.seed);
   }
-);
+});
 
-// Main loop
+metrics.sample(sim.world);
+
 let lastTime = performance.now();
 
 function loop(now: number) {
-  const deltaTime = (now - lastTime) / 1000;
+  const dt = (now - lastTime) / 1000;
   lastTime = now;
 
-  clock.update(deltaTime, () => {
-    tick(world, rng);
-
-    sampleCounter++;
-    const sampleRate =
-      world.agents.length > 500 ? 30 : 10;
-
-    if (sampleCounter % sampleRate === 0) {
-      metrics.sample(world);
-    }
+  clock.update(dt, () => {
+    tick(sim.world, sim.rng);
+    metrics.maybeSample(sim.world);
   });
 
-  const lastIndex = metrics.population.length - 1;
-  const avgSpeed = lastIndex >= 0 ? metrics.avgSpeed[lastIndex] : undefined;
-  const avgVision = lastIndex >= 0 ? metrics.avgVision[lastIndex] : undefined;
-
-  renderer.render(clock.speed, clock.paused, avgSpeed, avgVision, metrics.population, metrics.avgSpeed, metrics.avgVision, metrics.avgMetabolism);
+  renderer.render(metrics, {
+    seed: sim.seed,
+    speed: clock.speed,
+    paused: clock.paused,
+    graphMode
+  });
 
   requestAnimationFrame(loop);
 }

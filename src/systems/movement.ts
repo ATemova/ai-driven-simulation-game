@@ -3,23 +3,19 @@ import { RNG } from "../engine/rng";
 import { Decision } from "./decision";
 
 export function move(agent: Agent, decision: Decision, rng: RNG) {
-  let dx = 0;
-  let dy = 0;
-
   if (decision.type === "wander") {
-    dx = rng.range(-1, 1);
-    dy = rng.range(-1, 1);
-  } else {
-    const vx = decision.target.x - agent.x;
-    const vy = decision.target.y - agent.y;
-    const len = Math.hypot(vx, vy) || 1;
-    dx = vx / len;
-    dy = vy / len;
+    const angle = rng.range(0, Math.PI * 2);
+    agent.x += Math.cos(angle) * agent.traits.speed;
+    agent.y += Math.sin(angle) * agent.traits.speed;
+    return;
   }
 
-  agent.x += dx * agent.traits.speed;
-  agent.y += dy * agent.traits.speed;
+  const vx = decision.target.x - agent.x;
+  const vy = decision.target.y - agent.y;
+  const dist = Math.hypot(vx, vy);
+  if (dist === 0) return;
 
-  // movement cost scales with metabolism
-  agent.energy -= agent.traits.metabolism * 0.1;
+  const step = Math.min(agent.traits.speed, dist);
+  agent.x += (vx / dist) * step;
+  agent.y += (vy / dist) * step;
 }
